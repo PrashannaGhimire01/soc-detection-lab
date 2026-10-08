@@ -1,0 +1,37 @@
+# ---- Secrets: never commit these ----
+.env
+*.env
+*.key
+*.pem
+*.pfx
+secrets/
+wazuh-passwords.txt
+wazuh-install-files.tar
+
+# ---- Virtual machine and disk images (far too big for Git) ----
+*.iso
+*.ova
+*.ovf
+*.vmdk
+*.vdi
+*.vhd
+*.vhdx
+*.vmx
+*.nvram
+
+# ---- Large captures and raw logs (store outside the repo) ----
+*.pcap
+*.pcapng
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ---- Editor and OS clutter ----
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
