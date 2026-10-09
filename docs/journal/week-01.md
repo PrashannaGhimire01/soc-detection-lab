@@ -14,3 +14,8 @@
 - DC01 clock was on US Pacific time. Fixed with Set-TimeZone "Nepal Standard Time".
   Why it matters: wrong time zones break attack timelines when correlating logs.
 - First update restart looked stuck on "Update Orchestrator Service"; it was just installing updates.
+
+## WEB01 (Phase 1.4)
+- Built Ubuntu 24.04 server WEB01, static IP 10.10.10.30 on VMnet1
+- Installed Apache, MariaDB, PHP and DVWA (deliberately vulnerable, sealed network only)
+- Fixed SSH: had wrong IP (.149 vs .129); DHCP address had changed. Confirms why servers need static IPs.
