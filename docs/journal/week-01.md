@@ -19,3 +19,9 @@
 - Built Ubuntu 24.04 server WEB01, static IP 10.10.10.30 on VMnet1
 - Installed Apache, MariaDB, PHP and DVWA (deliberately vulnerable, sealed network only)
 - Fixed SSH: had wrong IP (.149 vs .129); DHCP address had changed. Confirms why servers need static IPs.
+
+## Phase 1 COMPLETE (2026-10-09)
+- WEB01 built: Ubuntu 24.04, Apache, MariaDB, DVWA, static 10.10.10.30
+- WSL2 Ubuntu attacker installed (nmap, sqlmap, hydra); bridged networking not supported with VMware, so attacks will run from a host on the lab network instead
+- Phase 1 test passed: ram.sharma account valid (Enabled, not LockedOut); normal users correctly blocked from logging into the DC (AD security rule); DC01 reaches WEB01 on ports 22 and 80
+- Lesson learned: netplan static IP needed 'netplan apply' after moving WEB01 to VMnet1
