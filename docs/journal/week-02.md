@@ -6,3 +6,7 @@
 - Enabled command-line in 4688, PowerShell script block logging (4104), advanced audit policy incl. Kerberos service tickets
 - Wazuh collecting PowerShell Operational channel: 10x 4104 events confirmed in Threat Hunting
 - Lesson: a leftover 'Authentication failure' filter caused a false 'No results'. Always check filters + time range first.
+## Phase 2.4: WEB01 connected
+- Wazuh agent active on WEB01; reads auth.log + Apache access/error logs
+- auditd deferred (sealed network, no internet); will stage packages in Phase 4
+- Verified: WEB01 Active in dashboard; failed SSH logins visible
