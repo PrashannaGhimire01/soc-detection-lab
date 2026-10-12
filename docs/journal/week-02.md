@@ -10,3 +10,7 @@
 - Wazuh agent active on WEB01; reads auth.log + Apache access/error logs
 - auditd deferred (sealed network, no internet); will stage packages in Phase 4
 - Verified: WEB01 Active in dashboard; failed SSH logins visible
+## Phase 2 COMPLETE (2026-10-12)
+- Both agents (DC01, WEB01) reporting to Wazuh
+- Practised event triage: read rule 5710 (non-existent SSH user) and 5503 (PAM login failed), identified srcip 10.10.10.1 (my laptop) as the source
+- SOC now covers Windows (Security, Sysmon, PowerShell) and Linux (auth.log, Apache)
