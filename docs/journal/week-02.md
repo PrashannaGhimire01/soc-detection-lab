@@ -14,3 +14,8 @@
 - Both agents (DC01, WEB01) reporting to Wazuh
 - Practised event triage: read rule 5710 (non-existent SSH user) and 5503 (PAM login failed), identified srcip 10.10.10.1 (my laptop) as the source
 - SOC now covers Windows (Security, Sysmon, PowerShell) and Linux (auth.log, Apache)
+## Phase 3.1 COMPLETE (2026-10-13)
+- Suricata IDS live on WEB01, HOME_NET 10.10.10.0/24, ET Open + 2 custom rules
+- Custom rule sid:1000001 (ICMP) verified firing end-to-end into Wazuh
+- Fixed: custom rules must live in /var/lib/suricata/rules (default-rule-path), not /etc/suricata/rules
+- Recovered a deleted netplan file with find + recreate; auditd rules loaded
