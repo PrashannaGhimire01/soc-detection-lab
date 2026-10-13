@@ -19,3 +19,7 @@
 - Custom rule sid:1000001 (ICMP) verified firing end-to-end into Wazuh
 - Fixed: custom rules must live in /var/lib/suricata/rules (default-rule-path), not /etc/suricata/rules
 - Recovered a deleted netplan file with find + recreate; auditd rules loaded
+## Phase 3.3: SQL injection detection (2026-10-13)
+- Attacked DVWA with ' OR '1'='1 and UNION SELECT payloads (ATT&CK T1190, threat-model Path 2)
+- Suricata ET Open rules detected the SQLi in HTTP from 10.10.10.1; visible in Wazuh under rule.groups:suricata
+- Key concept: Suricata reads unencrypted HTTP so it sees the payload; HTTPS would hide it
