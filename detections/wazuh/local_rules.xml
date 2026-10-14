@@ -1,0 +1,43 @@
+<!--
+  Himal Traders custom detection rules.
+  Deploy on SIEM01 at: /var/ossec/etc/rules/local_rules.xml
+  Custom rule IDs must be 100000-120000.
+  Test with: /var/ossec/bin/wazuh-logtest
+  Apply with: systemctl restart wazuh-manager
+-->
+
+<group name="himaltraders,windows,">
+
+  <!--
+    Detection #1 - Windows failed logons / brute force (4625)
+    Threat model: Path 1 step 1 (ransomware via RDP). ATT&CK T1110.001.
+    Wazuh decodes Windows 4625 into data.win.system.eventID = 4625.
+    Rule 60122 is the built-in "Logon failure" rule for 4625; we build on it
+    with if_sid so our rule only evaluates real 4625 events.
+  -->
+
+  <!-- Base: flag any single Windows failed logon from our environment (low level) -->
+  <rule id="100001" level="3">
+    <if_sid>60122</if_sid>
+    <field name="win.system.eventID">^4625$</field>
+    <description>HimalTraders: Windows failed logon (4625) for user $(win.eventdata.targetUserName)</description>
+    <mitre>
+      <id>T1110.001</id>
+    </mitre>
+    <group>authentication_failed,himaltraders_bruteforce,</group>
+  </rule>
+
+  <!-- Correlation: 8+ failed logons within 120s against the same user = brute force (high level).
+       Grouping by targeted user (not source IP) so it also catches local credential attacks,
+       where a source IP may be absent. -->
+  <rule id="100002" level="12" frequency="8" timeframe="120">
+    <if_matched_sid>100001</if_matched_sid>
+    <same_field>win.eventdata.targetUserName</same_field>
+    <description>HimalTraders: Possible brute force - 8+ Windows failed logons in 2 min for same user (T1110.001)</description>
+    <mitre>
+      <id>T1110.001</id>
+    </mitre>
+    <group>authentication_failures,himaltraders_bruteforce,pci_dss_11.4,</group>
+  </rule>
+
+</group>

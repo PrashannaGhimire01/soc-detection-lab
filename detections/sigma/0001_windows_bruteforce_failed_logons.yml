@@ -1,0 +1,32 @@
+title: Windows Multiple Failed Logons (Possible Brute Force)
+id: 0a1b2c3d-0001-4a1a-9f01-himaltraders01
+status: experimental
+description: |
+  Detects many failed logon attempts (Event ID 4625) against a Windows host in a
+  short time, which indicates password guessing or brute force. In the Himal Traders
+  environment this is the first step of Path 1 (ransomware via RDP).
+author: Prashanna Ghimire
+date: 2026/10/14
+references:
+  - internal threat model, detection priority #1
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4625
+  timeframe: 2m
+  condition: selection | count() by TargetUserName > 8
+fields:
+  - TargetUserName
+  - IpAddress
+  - LogonType
+  - WorkstationName
+falsepositives:
+  - A user genuinely forgetting their password several times
+  - A service account with a stale cached password
+level: high
+tags:
+  - attack.credential-access
+  - attack.t1110
+  - attack.t1110.001
