@@ -23,3 +23,9 @@
 - Attacked DVWA with ' OR '1'='1 and UNION SELECT payloads (ATT&CK T1190, threat-model Path 2)
 - Suricata ET Open rules detected the SQLi in HTTP from 10.10.10.1; visible in Wazuh under rule.groups:suricata
 - Key concept: Suricata reads unencrypted HTTP so it sees the payload; HTTPS would hide it
+
+## Phase 4, detection #5 COMPLETE (2026-10-15)
+- New account / privileged group detection (T1136/T1098), rules 100005/100006/100007
+- Attacked remotely from laptop via PSRemoting (T1021.006) - realistic lateral movement
+- Debugged: 100006 wrong parent (60109 vs real 60154); re-anchored on if_group win_group_changed
+- Learned: Wazuh rules apply only to NEW events; rule chaining shows the final escalated rule; account-change events have no IP (correlate with 4624)

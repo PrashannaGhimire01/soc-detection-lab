@@ -40,4 +40,46 @@
     <group>authentication_failures,himaltraders_bruteforce,pci_dss_11.4,</group>
   </rule>
 
+  <!--
+    Detection #5 - New account created / added to a privileged group
+    Threat model: Path 1 step 4 (backdoor admin account). ATT&CK T1136 + T1098.
+    Built-in Wazuh rules already flag these; we raise severity and tag them for
+    Himal Traders so they stand out and map to our coverage.
+  -->
+
+  <!-- A new user account was created (4720) -->
+  <rule id="100005" level="8">
+    <if_sid>60109</if_sid>
+    <field name="win.system.eventID">^4720$</field>
+    <description>HimalTraders: New user account created: $(win.eventdata.targetUserName) by $(win.eventdata.subjectUserName) (T1136)</description>
+    <mitre>
+      <id>T1136</id>
+    </mitre>
+    <group>account_created,himaltraders_persistence,</group>
+  </rule>
+
+  <!-- A member was added to a security group (4728 global, 4732 local, 4756 universal).
+       Anchored on the win_group_changed rule group so it catches all group changes
+       regardless of which built-in rule caught them (verified: 4732 -> rule 60154). -->
+  <rule id="100006" level="8">
+    <if_group>win_group_changed</if_group>
+    <field name="win.system.eventID">^4728$|^4732$|^4756$</field>
+    <description>HimalTraders: Member added to group $(win.eventdata.targetUserName) by $(win.eventdata.subjectUserName) (T1098)</description>
+    <mitre>
+      <id>T1098</id>
+    </mitre>
+    <group>account_changed,himaltraders_persistence,</group>
+  </rule>
+
+  <!-- HIGH severity: added to a privileged group (Domain Admins / Administrators / Enterprise Admins) -->
+  <rule id="100007" level="13">
+    <if_sid>100006</if_sid>
+    <field name="win.eventdata.targetUserName">Domain Admins|Administrators|Enterprise Admins|Schema Admins</field>
+    <description>HimalTraders: Account added to a PRIVILEGED group ($(win.eventdata.targetUserName)) - possible backdoor admin (T1098)</description>
+    <mitre>
+      <id>T1098</id>
+    </mitre>
+    <group>account_changed,privilege_escalation,himaltraders_persistence,pci_dss_10.2.5,</group>
+  </rule>
+
 </group>
