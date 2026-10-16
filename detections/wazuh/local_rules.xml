@@ -71,6 +71,25 @@
     <group>account_changed,himaltraders_persistence,</group>
   </rule>
 
+  <!--
+    Detection #3 - Office application spawning a shell (Sysmon Event 1)
+    Threat model: Path 3 step 2 (malicious macro runs PowerShell). ATT&CK T1204.002 + T1059.001.
+    Office apps have no legitimate reason to launch cmd/powershell/script hosts.
+    Uses Sysmon process creation (Event 1): win.eventdata.parentImage + win.eventdata.image.
+    Anchored on the sysmon_event1 rule group.
+  -->
+  <rule id="100003" level="12">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)(WINWORD|EXCEL|POWERPNT|OUTLOOK|MSACCESS|VISIO)\.EXE$</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)(cmd|powershell|powershell_ise|pwsh|wscript|cscript|mshta|regsvr32|rundll32)\.exe$</field>
+    <description>HimalTraders: Office app ($(win.eventdata.parentImage)) spawned a shell ($(win.eventdata.image)) - possible malicious macro (T1204.002/T1059.001)</description>
+    <mitre>
+      <id>T1204.002</id>
+      <id>T1059.001</id>
+    </mitre>
+    <group>himaltraders_phishing,malicious_macro,</group>
+  </rule>
+
   <!-- HIGH severity: added to a privileged group (Domain Admins / Administrators / Enterprise Admins) -->
   <rule id="100007" level="13">
     <if_sid>100006</if_sid>

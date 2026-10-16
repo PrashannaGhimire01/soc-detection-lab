@@ -1,0 +1,45 @@
+title: Office Application Spawning a Shell or Script Host
+id: 0a1b2c3d-0003-4a1a-9f03-himaltraders03
+status: experimental
+description: |
+  Detects a Microsoft Office application (Word, Excel, PowerPoint, Outlook, Access)
+  creating a child process that is a command shell or script host (cmd, powershell,
+  wscript, cscript, mshta, regsvr32, rundll32). Office has no legitimate reason to do
+  this; it is a hallmark of a malicious macro. In the Himal Traders threat model this
+  is Path 3 step 2: a phishing attachment executing code.
+author: Prashanna Ghimire
+date: 2026/10/15
+references:
+  - internal threat model, detection priority #3
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection:
+    ParentImage|endswith:
+      - '\WINWORD.EXE'
+      - '\EXCEL.EXE'
+      - '\POWERPNT.EXE'
+      - '\OUTLOOK.EXE'
+      - '\MSACCESS.EXE'
+    Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\wscript.exe'
+      - '\cscript.exe'
+      - '\mshta.exe'
+      - '\regsvr32.exe'
+      - '\rundll32.exe'
+  condition: selection
+fields:
+  - ParentImage
+  - Image
+  - CommandLine
+falsepositives:
+  - Rare legitimate Office add-ins that shell out (document and allowlist if found)
+level: high
+tags:
+  - attack.execution
+  - attack.t1204.002
+  - attack.t1059.001
