@@ -133,4 +133,24 @@
     <group>credential_access,himaltraders_crownjewel,pci_dss_10.2.5,</group>
   </rule>
 
+  <!--
+    Detection #2 - Successful brute force (failed logons THEN a success). T1110.
+    Threat model: Path 1 step 1->2 (attacker guesses the password and gets in).
+    Correlation: rule 100002 (brute force detected for a user) fired, then a successful
+    logon (native rule 60106, event 4624) arrives for the SAME user within the timeframe.
+    Grouped by targetUserName (not source IP), consistent with 100002, so it works for
+    local and network logons alike. This is the high-severity OUTCOME of a brute force:
+    a failed brute force is noise, a successful one is an incident.
+  -->
+  <rule id="100010" level="13" timeframe="600">
+    <if_sid>60106</if_sid>
+    <if_matched_sid>100002</if_matched_sid>
+    <same_field>win.eventdata.targetUserName</same_field>
+    <description>HimalTraders: Successful logon for $(win.eventdata.targetUserName) right after a brute force - the attack likely SUCCEEDED (T1110)</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_success,himaltraders_bruteforce,privilege_escalation,pci_dss_10.2.5,</group>
+  </rule>
+
 </group>

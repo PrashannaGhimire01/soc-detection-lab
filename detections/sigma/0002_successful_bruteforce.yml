@@ -1,0 +1,59 @@
+title: Windows Failed Logon (base rule for correlation)
+id: 0a1b2c3d-0002-4a1a-9f02-himaltrader02a
+name: ht_failed_logon
+status: experimental
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4625
+  condition: selection
+---
+title: Windows Successful Logon (base rule for correlation)
+id: 0a1b2c3d-0002-4a1a-9f02-himaltrader02b
+name: ht_successful_logon
+status: experimental
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4624
+  condition: selection
+---
+title: Successful Brute Force - Failed Logons Followed by a Success
+id: 0a1b2c3d-0002-4a1a-9f02-himaltraders02
+status: experimental
+description: |
+  Detects a likely SUCCESSFUL brute force: a burst of failed logons (4625) for an account,
+  followed by a successful logon (4624) for that same account within a short window. A failed
+  brute force is noise; a failed-then-successful sequence is an incident - the attacker guessed
+  the password and is now authenticated. In the Himal Traders threat model this is Path 1
+  step 1->2: the attacker cracks the RDP/admin password and gets their first foothold on DC01.
+  The deployed Wazuh implementation (rule 100010) anchors on rule 100002, which already requires
+  8+ failures in 120s, so this fires only after a real brute force, not a single typo.
+author: Prashanna Ghimire
+date: 2026/10/16
+references:
+  - internal threat model, detection priority #2
+correlation:
+  type: temporal_ordered
+  rules:
+    - ht_failed_logon
+    - ht_successful_logon
+  group-by:
+    - TargetUserName
+  timespan: 10m
+fields:
+  - TargetUserName
+  - IpAddress
+  - LogonType
+falsepositives:
+  - A user who mistyped their password several times and then logged in correctly
+    (mitigated by requiring 8+ failures before the success)
+  - Authorized password-spray / brute-force testing (should be pre-announced)
+level: critical
+tags:
+  - attack.credential-access
+  - attack.t1110
