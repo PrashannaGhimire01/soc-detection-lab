@@ -1,0 +1,41 @@
+title: Web Shell Dropped in Web Root
+id: 0a1b2c3d-0006-4a1a-9f06-himaltraders06
+status: experimental
+description: |
+  Detects a new or modified server-side script (.php, .phtml, .phar, etc.) appearing in the web
+  root. Legitimate web code does not materialize in the web directory during normal operation, so
+  a fresh script there is almost always a web shell - the attacker's remote command interface
+  planted after exploiting the web application. In the Himal Traders threat model this is Path 2:
+  compromise of the public web server (WEB01 / DVWA). Detected via File Integrity Monitoring (FIM)
+  watching /var/www/html in realtime.
+author: Prashanna Ghimire
+date: 2026/10/16
+references:
+  - internal threat model, detection priority #6
+  - https://attack.mitre.org/techniques/T1505/003/
+logsource:
+  product: linux
+  category: file_event
+detection:
+  selection:
+    TargetFilename|startswith: '/var/www/'
+    TargetFilename|endswith:
+      - '.php'
+      - '.phtml'
+      - '.phar'
+      - '.phps'
+      - '.pht'
+      - '.php3'
+      - '.php4'
+      - '.php5'
+      - '.php7'
+  condition: selection
+fields:
+  - TargetFilename
+falsepositives:
+  - Legitimate application deployment or update that writes PHP files to the web root
+    (should come from a known deploy process / change window - allowlist that path or process)
+level: high
+tags:
+  - attack.persistence
+  - attack.t1505.003

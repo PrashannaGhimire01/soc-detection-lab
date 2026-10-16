@@ -171,4 +171,22 @@
     <group>himaltraders_ransomware,inhibit_recovery,</group>
   </rule>
 
+  <!--
+    Detection #6 - Web shell dropped in the web root (WEB01). T1505.003.
+    Threat model: Path 2 (web compromise) - attacker exploits DVWA and plants a PHP web shell.
+    Data source: File Integrity Monitoring (FIM / syscheck) on /var/www/html, realtime.
+    A new or modified .php (or .phtml/.phar/...) file in the web root is almost always a web shell;
+    legitimate web code does not appear there during normal operation. Native rule 554 fires at
+    level 5 on any file add; we elevate to 12 specifically for PHP scripts in the web root.
+  -->
+  <rule id="100012" level="12">
+    <if_sid>554,550</if_sid>
+    <field name="file" type="pcre2">(?i)/var/www/.+\.(php|phtml|php[0-9]|phar|phps|pht)\b</field>
+    <description>HimalTraders: Possible WEB SHELL - PHP file added/modified in web root on $(agent.name): $(file) (T1505.003)</description>
+    <mitre>
+      <id>T1505.003</id>
+    </mitre>
+    <group>himaltraders_webshell,web,pci_dss_11.5,</group>
+  </rule>
+
 </group>
