@@ -101,4 +101,36 @@
     <group>account_changed,privilege_escalation,himaltraders_persistence,pci_dss_10.2.5,</group>
   </rule>
 
+  <!--
+    Detection #4 - LSASS credential theft, caught by Microsoft Defender
+    Threat model: Path 1 step 3 / Path 3 step 4 (dump LSASS to steal AD credentials). ATT&CK T1003.001.
+    Sysmon Event 10 (ProcessAccess) would not reliably log on this hardened host, but Defender's
+    ASR rule "Block credential stealing from lsass.exe" catches and BLOCKS the attempt and logs it
+    to the Microsoft-Windows-Windows Defender/Operational channel (onboarded via the agent ossec.conf).
+    Built-in Wazuh rule 62123 already fires on a Defender detection (1116); we build on it to add
+    Himal Traders context, then escalate when the threat is a credential-theft tool.
+    This is a "control worked" / defense-in-depth detection: the attack was blocked AND recorded.
+  -->
+
+  <!-- Base: Defender detected/blocked any threat on an endpoint -->
+  <rule id="100004" level="12">
+    <if_sid>62123</if_sid>
+    <description>HimalTraders: Microsoft Defender detected/blocked a threat on $(agent.name): $(win.eventdata.path)</description>
+    <group>windows_defender,himaltraders_endpoint,</group>
+  </rule>
+
+  <!-- CRITICAL: the blocked threat is a credential-theft tool targeting LSASS.
+       Matches the Defender threat name / command line in the raw event (e.g. HackTool:Win32/DumpLsass,
+       Mimikatz, WDigest, Pwdump...). This is Himal Traders' crown-jewel detection: someone tried to
+       steal domain credentials from DC01. -->
+  <rule id="100008" level="13">
+    <if_sid>100004</if_sid>
+    <match type="pcre2">(?i)Lsass|Mimikatz|WDigest|Pwdump|Gsecdump|Samdump|DumpCreds|CredentialStealer</match>
+    <description>HimalTraders: Defender BLOCKED a credential-theft attempt against LSASS on $(agent.name): $(win.eventdata.path) (T1003.001)</description>
+    <mitre>
+      <id>T1003.001</id>
+    </mitre>
+    <group>credential_access,himaltraders_crownjewel,pci_dss_10.2.5,</group>
+  </rule>
+
 </group>
