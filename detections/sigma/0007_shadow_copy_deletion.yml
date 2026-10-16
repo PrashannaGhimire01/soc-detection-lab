@@ -1,0 +1,45 @@
+title: Shadow Copy / Backup Deletion - Inhibit System Recovery
+id: 0a1b2c3d-0007-4a1a-9f07-himaltraders07
+status: experimental
+description: |
+  Detects commands that delete Volume Shadow Copies or system backups, or disable Windows
+  recovery - the step ransomware almost always runs right before encrypting files so the victim
+  cannot restore them for free. Covers vssadmin, wmic shadowcopy, wbadmin, bcdedit recovery
+  tampering and PowerShell WMI shadow deletion. In the Himal Traders threat model this is the
+  final step of Path 1: the attacker is about to detonate ransomware on DC01. Matching is on the
+  behavioral phrase in the command line (e.g. "delete shadows") rather than the exact binary/arg
+  spacing, so it is robust to quoting and full-path invocation.
+author: Prashanna Ghimire
+date: 2026/10/16
+references:
+  - internal threat model, detection priority #7
+  - https://attack.mitre.org/techniques/T1490/
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection:
+    CommandLine|contains:
+      - 'delete shadows'
+      - 'delete shadow'
+      - 'shadowcopy delete'
+      - 'resize shadowstorage'
+      - 'delete catalog'
+      - 'recoveryenabled no'
+      - 'bootstatuspolicy ignoreallfailures'
+      - 'Win32_ShadowCopy'
+      - 'wbadmin delete systemstatebackup'
+      - 'wbadmin delete backup'
+  condition: selection
+fields:
+  - Image
+  - CommandLine
+  - ParentImage
+  - User
+falsepositives:
+  - Backup software or an administrator legitimately managing shadow storage (rare; should map
+    to a known process, a scheduled job, or a change ticket - allowlist the specific parent/command)
+level: critical
+tags:
+  - attack.impact
+  - attack.t1490

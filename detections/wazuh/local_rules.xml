@@ -153,4 +153,22 @@
     <group>authentication_success,himaltraders_bruteforce,privilege_escalation,pci_dss_10.2.5,</group>
   </rule>
 
+  <!--
+    Detection #7 - Shadow copy / backup deletion (inhibit system recovery). T1490.
+    Threat model: Path 1 final step - ransomware deletes shadow copies before encrypting so
+    the victim cannot restore files. Almost no legitimate reason for these commands, so this is
+    a very low-false-positive, very high-urgency "ransomware is about to detonate" alert.
+    Data source: Sysmon Event 1 process creation, matched on the command line. Covers vssadmin,
+    wmic shadowcopy, wbadmin, bcdedit recovery tampering, and PowerShell WMI shadow deletion.
+  -->
+  <rule id="100011" level="14">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(delete\s+shadows?|shadowcopy\s+delete|resize\s+shadowstorage|delete\s+catalog|recoveryenabled\s+no|bootstatuspolicy\s+ignoreallfailures|Win32_ShadowCopy|wbadmin\s+delete\s+(systemstatebackup|backup))</field>
+    <description>HimalTraders: Possible RANSOMWARE prep - shadow copy / backup deletion on $(agent.name): $(win.eventdata.commandLine) (T1490)</description>
+    <mitre>
+      <id>T1490</id>
+    </mitre>
+    <group>himaltraders_ransomware,inhibit_recovery,</group>
+  </rule>
+
 </group>
