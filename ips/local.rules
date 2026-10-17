@@ -1,0 +1,10 @@
+# Himal Traders custom Suricata IPS rules (drop action = blocked inline).
+# Append to /var/lib/suricata/rules/local.rules on WEB01 (already in rule-files),
+# then: sudo systemctl restart suricata
+#
+# These target SQL injection against the DVWA web app (threat model Path 2).
+# The OR-1=1 signature is hardened to defeat URL-encoding evasion: the separators
+# between tokens may be whitespace, %20 (encoded space) or + .
+
+drop http any any -> $HOME_NET any (msg:"LAB SQLi - OR 1=1 boolean (IPS)"; flow:established,to_server; http.uri; content:"OR"; nocase; pcre:"/(\x27|%27|')(\s|%20|\x2b)*OR(\s|%20|\x2b)*(\x27|%27)?1?(\x27|%27)?(\s|%20|\x2b)*=(\s|%20|\x2b)*(\x27|%27)?1/i"; sid:1000010; rev:2;)
+drop http any any -> $HOME_NET any (msg:"LAB SQLi - UNION SELECT (IPS)"; flow:established,to_server; http.uri; content:"UNION"; nocase; content:"SELECT"; nocase; sid:1000011; rev:2;)
