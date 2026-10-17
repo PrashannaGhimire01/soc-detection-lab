@@ -1,0 +1,26 @@
+<!--
+  Wazuh Active Response configuration for the "disable compromised account" response.
+  Add these two blocks INSIDE the main <ossec_config> ... </ossec_config> block on the
+  Wazuh manager (SIEM01): /var/ossec/etc/ossec.conf  — then restart wazuh-manager.
+
+  IMPORTANT: they must live in the SAME <ossec_config> block as the rest of the config.
+  If they land in a second <ossec_config> block, analysisd parses the <command> (it shows
+  up in the generated ar.conf) but does NOT wire the <active-response> trigger, and the
+  response never fires. Consolidate into one block.
+
+  The executable (disable-account.cmd + disable-account.ps1) must be deployed on the agent
+  (DC01) at: C:\Program Files (x86)\ossec-agent\active-response\bin\
+-->
+
+<command>
+  <name>disable-ad-account</name>
+  <executable>disable-account.cmd</executable>
+  <timeout_allowed>no</timeout_allowed>
+</command>
+
+<active-response>
+  <command>disable-ad-account</command>
+  <location>defined-agent</location>
+  <agent_id>001</agent_id>
+  <rules_id>100010</rules_id>
+</active-response>
