@@ -42,12 +42,19 @@ here the allowlist + high-confidence trigger (a *successful* brute force) is the
 - **Detection — verified.** Rule 100010 fires reliably on the simulated attack.
 - **Manager wiring — configured.** `<command>`/`<active-response>` present in `ossec.conf`;
   `disable-ad-account` registered in the generated `ar.conf` and synced to the agent.
-- **Fully-automatic end-to-end trigger — to be confirmed on a fresh lab boot.** During testing a
-  config bug was found and fixed (the AR blocks had landed in a second `<ossec_config>` section
-  instead of the main one, so analysisd never wired the trigger — now consolidated into one block).
-  A clean validation run was repeatedly confounded by test timing (attacking immediately after a
-  manager restart / inside the correlation cooldown) and by the 8 GB DC dropping its ADWS service
-  under load. See the clean re-test procedure below.
+- **Fully-automatic end-to-end trigger — known open issue.** The detection fires and the command is
+  registered on both manager (`ar.conf`) and agent, but `wazuh-execd` on the agent never receives
+  the command when rule 100010 fires, so the account is not auto-disabled. Troubleshooting performed:
+  verified the command reaches `ar.conf` and syncs to the agent; ruled out the AR whitelist (loopback
+  only); fixed a real config bug where the `<command>`/`<active-response>` blocks had landed in a
+  second `<ossec_config>` section instead of the main one (consolidated into one block); switched
+  `<location>` from `local` to `defined-agent`; and confirmed on a fresh, healthy, clean-timed run
+  that the response still does not dispatch. Current hypothesis: a Wazuh active-response routing quirk
+  for alerts produced by a composite correlation rule (`if_matched_sid`) targeting a Windows agent.
+  Next avenues to try: a non-correlation test rule to isolate whether any AR dispatches to this agent;
+  a manager-side (`<location>server</location>`) response using the Wazuh API to disable the account;
+  or raising it with the Wazuh community. The response script and detection are independently verified
+  (below), so the capability is built; only the automated hand-off remains.
 
 ## Clean re-test procedure (run on a rested lab)
 
