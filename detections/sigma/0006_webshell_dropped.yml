@@ -1,5 +1,5 @@
 title: Web Shell Dropped in Web Root
-id: 0a1b2c3d-0006-4a1a-9f06-himaltraders06
+id: 6618d4c3-49c3-4d34-b83a-e984256ed008
 status: experimental
 description: |
   Detects a new or modified server-side script (.php, .phtml, .phar, etc.) appearing in the web

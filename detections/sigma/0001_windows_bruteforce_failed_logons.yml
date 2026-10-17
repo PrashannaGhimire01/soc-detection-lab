@@ -1,5 +1,5 @@
 title: Windows Multiple Failed Logons (Possible Brute Force)
-id: 0a1b2c3d-0001-4a1a-9f01-himaltraders01
+id: e6f86f78-118a-4440-ac9e-e4c7838d5288
 status: experimental
 description: |
   Detects many failed logon attempts (Event ID 4625) against a Windows host in a

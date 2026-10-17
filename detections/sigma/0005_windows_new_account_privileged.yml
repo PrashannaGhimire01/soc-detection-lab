@@ -1,5 +1,5 @@
 title: New Account Created or Added to Privileged Group
-id: 0a1b2c3d-0005-4a1a-9f05-himaltraders05
+id: 8659e890-6314-4b69-8baf-b25958601cf3
 status: experimental
 description: |
   Detects creation of a new Windows account (4720) and addition of an account to a

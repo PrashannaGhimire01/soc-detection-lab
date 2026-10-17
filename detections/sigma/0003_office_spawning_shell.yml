@@ -1,5 +1,5 @@
 title: Office Application Spawning a Shell or Script Host
-id: 0a1b2c3d-0003-4a1a-9f03-himaltraders03
+id: da86cbdc-8103-4e60-94e0-3b51b9134231
 status: experimental
 description: |
   Detects a Microsoft Office application (Word, Excel, PowerPoint, Outlook, Access)

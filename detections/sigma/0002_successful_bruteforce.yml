@@ -1,5 +1,5 @@
 title: Windows Failed Logon (base rule for correlation)
-id: 0a1b2c3d-0002-4a1a-9f02-himaltrader02a
+id: 4f016dd2-35b5-4114-940f-9ab252ba9e38
 name: ht_failed_logon
 status: experimental
 logsource:
@@ -11,7 +11,7 @@ detection:
   condition: selection
 ---
 title: Windows Successful Logon (base rule for correlation)
-id: 0a1b2c3d-0002-4a1a-9f02-himaltrader02b
+id: 5c7b100f-f9eb-45ed-a3f6-5b346a7f1e4b
 name: ht_successful_logon
 status: experimental
 logsource:
@@ -23,7 +23,7 @@ detection:
   condition: selection
 ---
 title: Successful Brute Force - Failed Logons Followed by a Success
-id: 0a1b2c3d-0002-4a1a-9f02-himaltraders02
+id: 1ed67852-2b3a-4e4e-ade3-fe5fd0ba4a90
 status: experimental
 description: |
   Detects a likely SUCCESSFUL brute force: a burst of failed logons (4625) for an account,

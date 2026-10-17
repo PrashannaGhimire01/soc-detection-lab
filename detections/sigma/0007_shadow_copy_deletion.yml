@@ -1,5 +1,5 @@
 title: Shadow Copy / Backup Deletion - Inhibit System Recovery
-id: 0a1b2c3d-0007-4a1a-9f07-himaltraders07
+id: 1bb2dd17-e2ee-42ea-8450-72f69052a10d
 status: experimental
 description: |
   Detects commands that delete Volume Shadow Copies or system backups, or disable Windows
