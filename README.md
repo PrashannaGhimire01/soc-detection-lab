@@ -105,6 +105,14 @@ Initial Access ──▶ Execution ──▶ Credential Access ──▶ Persist
 The point isn't just coverage — it's that an analyst can watch an intrusion **progress** through
 these stages, with each stage raising its own alert and pointing to its own response runbook.
 
+### ATT&CK coverage map
+
+![MITRE ATT&CK detection coverage](metrics/attack-coverage-preview.png)
+
+*10 techniques across 6 tactics, each mapped to the rule(s) that cover it. A machine-readable
+[ATT&CK Navigator layer](metrics/attack-navigator-layer.json) is in `metrics/` — load it at
+[mitre-attack.github.io/attack-navigator](https://mitre-attack.github.io/attack-navigator/).*
+
 ---
 
 ## Detection engineering practices
@@ -144,6 +152,10 @@ soc-detection-lab/
 ├── runbooks/                      # One triage runbook per detection
 ├── tests/
 │   └── validate_detections.py     # Detection-as-Code validation harness
+├── response/                      # SOAR: auto-disable account on successful brute force
+├── ips/                           # Suricata inline IPS (NFQUEUE) + hardened drop rules
+├── hunting/                       # Threat-hunting sweep (Chainsaw + this repo's Sigma)
+├── metrics/                       # ATT&CK coverage map + Navigator layer
 ├── threat-model.md                # Himal Traders threat model (drives what we detect)
 └── README.md
 ```
@@ -164,10 +176,10 @@ soc-detection-lab/
 - [x] Lab build, threat model, and 7 detections across 3 hosts / 4 telemetry sources
 - [x] Analyst runbooks for every detection
 - [x] Detection-as-Code: Sigma sources + CI validation pipeline
-- [ ] Automated response (SOAR) — active response on high-severity alerts
-- [ ] Intrusion **prevention** (Suricata IPS mode / inline blocking)
-- [ ] Threat hunting notebooks (Chainsaw / Hayabusa over collected telemetry)
-- [ ] Detection coverage metrics & an ATT&CK Navigator heatmap
+- [x] MITRE ATT&CK coverage map + Navigator layer (`metrics/`)
+- [x] Intrusion **prevention** — Suricata inline IPS drops SQLi before it lands (`ips/`)
+- [x] Automated response (SOAR) — auto-disable on successful brute force (`response/`; script + detection verified, auto-trigger documented)
+- [x] Threat hunting — Chainsaw sweep of exported logs with this repo's own Sigma rules (`hunting/`)
 
 ---
 
