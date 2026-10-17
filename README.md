@@ -1,131 +1,178 @@
-# CyberSaathi 🛡️
+# SOC Detection & Response Lab
 
-**An AI-assisted, offline-first, bilingual personal cybersecurity companion for
-non-technical users in Nepal.**
+![Detection-as-Code CI](https://github.com/PrashannaGhimire01/soc-detection-lab/actions/workflows/detections-ci.yml/badge.svg)
+![Platform](https://img.shields.io/badge/SIEM-Wazuh%204.14-blue)
+![Detections](https://img.shields.io/badge/detections-7%20live-success)
+![MITRE ATT&CK](https://img.shields.io/badge/mapped%20to-MITRE%20ATT%26CK-red)
 
-CyberSaathi helps ordinary people — a shopkeeper, a parent, a first-time
-smartphone user — stay safe online in their own language. Paste or *speak* a
-suspicious message and get a plain-language risk verdict in Nepali or English;
-learn through short lessons; and, on a home network, have a small gateway watch
-for scams and attacks in the background.
+A home-built **Security Operations Center** lab that detects a realistic, end-to-end intrusion —
+from first password-guess to ransomware — and treats every detection as tested, version-controlled
+code. Built on a single 8 GB laptop, deployed across three hosts, and validated automatically on
+every commit.
 
-Final-year university project (solo). Built incrementally, version by version.
-
----
-
-## The four pillars
-
-- **Protect** — detect scam messages, malicious links, and network threats.
-- **Explain** — plain-language, bilingual reasons and actions ("why" + "what to do").
-- **Educate** — short lessons and quizzes that build safe habits.
-- **Include** — offline-first, Nepali + Romanized Nepali, voice for low literacy,
-  works on low-end phones and poor connectivity.
-
-## Research questions
-
-- **RQ1** — Do AI-style plain-language explanations improve understanding?
-- **RQ2** — Can lightweight models detect Nepali scams accurately?
-- **RQ3** — Can protection work offline / in the background?
-- **RQ4** — Does in-app education reduce unsafe behaviour?
+This repo is the **detection content and engineering practice** behind that lab: Sigma rule sources,
+their Wazuh deployments, analyst runbooks, a threat model, and a CI pipeline that proves the
+detections are valid before they ship.
 
 ---
 
-## Version roadmap (all implemented)
+## Why this project exists
 
-| Ver | Title | What it delivers |
-|-----|-------|------------------|
-| v0.1 | Rule-based checker (web) | Paste a message → risk score, reasons, bilingual guidance. Rules as JSON. |
-| v0.2 | ML baseline | TF-IDF + Logistic Regression on a collected dataset; honest held-out evaluation vs rules. |
-| v0.3 | Android app | Share-to-CyberSaathi, results screen, lessons. |
-| v0.4 | Offline | Rules + model run on the phone (local engine), bilingual parity. |
-| v0.5 | Network discovery | Nmap scan → device list → plain-language, severity-ranked findings in the app. |
-| v0.6 | Gateway | Kali as a home gateway: routing, DNS scam-filtering, Suricata IDS, alerts to the app. |
-| v0.7 | Education + research | Lesson/quiz system, transformer-vs-TF-IDF comparison, evaluation study design. |
-| v0.8 | Voice | Nepali speech-to-text input and text-to-speech output on-device. |
+Most "SIEM home lab" projects stop at *"I installed Wazuh and saw an alert."* This one goes further
+and answers the questions a hiring manager actually cares about:
+
+- **Did you detect the things that matter?** Detections are chosen from a written **threat model**,
+  not at random, and mapped to **MITRE ATT&CK**.
+- **Do your detections actually work?** Every rule was built with a repeatable lifecycle
+  (hypothesis → telemetry → logic → **attack simulation** → tune → deploy) and verified by
+  *running the real attack* against the lab.
+- **Can your work be trusted and maintained?** Detections live in Git as **Detection-as-Code**,
+  with a **CI pipeline** that validates them on every push, plus a **triage runbook** for each one.
 
 ---
 
 ## Architecture
 
+A host-only VMware network (`10.10.10.0/24`) with a central SIEM and two monitored assets, sized to
+run on 8 GB of RAM.
+
+```mermaid
+flowchart LR
+    ATK["Attacker<br/>(simulated adversary)"]
+
+    subgraph LAB["Himal Traders lab — 10.10.10.0/24 (host-only)"]
+        DC01["DC01 — 10.10.10.20<br/>Windows Server 2022<br/>Active Directory (lab.local)<br/>Sysmon + Defender + Wazuh agent"]
+        WEB01["WEB01 — 10.10.10.30<br/>Ubuntu 24.04<br/>Apache + DVWA<br/>FIM + Suricata + Wazuh agent"]
+        SIEM01["SIEM01 — 10.10.10.10<br/>Wazuh 4.14 manager / indexer / dashboard<br/>detection rules + correlation + alerting"]
+    end
+
+    ATK -->|brute force, phishing exec,<br/>credential theft, ransomware prep| DC01
+    ATK -->|web exploit, web shell| WEB01
+    DC01 -->|Security log, Sysmon,<br/>Defender events| SIEM01
+    WEB01 -->|FIM events, Suricata alerts| SIEM01
 ```
-  Phone (Flutter app, offline-capable)
-    ├─ Message / Link analyzer  ── online → FastAPI backend (ML + rules)
-    │                           └─ offline → on-device rule engine
-    ├─ Voice in/out (ne-NP / en-US)
-    ├─ Emergency ("I clicked") guidance
-    ├─ Learn (lessons + quizzes)
-    ├─ My Network (device scan findings)
-    └─ Alerts (gateway threat warnings)
 
-  Backend (FastAPI on Render)
-    /analyze/message  /analyze/url  /emergency  /lessons
-    /network/scan  /network/latest  /alerts/scan  /alerts/latest
+| Host | IP | Role | Telemetry shipped to SIEM |
+| --- | --- | --- | --- |
+| **SIEM01** | 10.10.10.10 | Wazuh 4.14 manager + indexer + dashboard | — (collector/analyzer) |
+| **DC01** | 10.10.10.20 | Windows Server 2022, Active Directory domain controller | Windows Security log, Sysmon, Microsoft Defender |
+| **WEB01** | 10.10.10.30 | Ubuntu 24.04, Apache + DVWA (vulnerable web app) | File Integrity Monitoring, Suricata network IDS |
 
-  Home gateway (Kali VM)
-    routing + NAT · dnsmasq DNS filtering · Suricata IDS
-    netscan/ scripts → push scan + alert reports to the backend
-```
-
-**Design principle — "rules as data":** detection logic lives in JSON
-(`message_rules.json`, `url_rules.json`, `network_rules.json`, `alert_rules.json`,
-`explanations.json`, `lessons.json`, `emergency.json`), loaded by both the server
-and the phone so online and offline behaviour match and stay auditable.
+> **8 GB constraint:** the SIEM runs continuously (tuned to a 1 GB JVM heap); the two monitored
+> hosts are rotated as needed. The whole lab was designed to be reproducible on modest hardware
+> with no paid cloud.
 
 ---
 
-## Key results (honest)
+## Threat model
 
-- **ML (RQ2):** TF-IDF + Logistic Regression, honest held-out evaluation with a
-  leakage guard (drop train rows ≥0.80 cosine-similar to test): **~95.6%
-  accuracy, scam recall ~0.97, 3 false positives / 60 legit.**
-- **Transformer comparison (RQ2):** frozen multilingual MiniLM embeddings + LR
-  scored **~64%** vs TF-IDF **~96%** — the lightweight model wins on this dataset.
-  Caveat: embeddings frozen, not fine-tuned.
-- **Gateway (RQ3):** end-to-end demo — a live `nmap` port scan is detected by
-  Suricata and surfaces as a plain-Nepali warning in the app.
+Detections are driven by a written threat model for a fictional 25-person Kathmandu trading company,
+**Himal Traders Pvt. Ltd.** (see [`threat-model.md`](threat-model.md)). It identifies the crown-jewel
+asset (Active Directory on DC01), the likely threat actors, and three primary attack paths:
 
----
+1. **Ransomware via RDP** — brute force an exposed login, escalate, steal credentials, destroy
+   backups, encrypt. *(highest risk)*
+2. **Web application compromise** — exploit the public web server, plant a web shell.
+3. **Phishing** — a malicious document executes code, then steals credentials.
 
-## Repository layout
-
-```
-backend/        FastAPI app (analyze, emergency, lessons, network, alerts)
-ai/             training + evaluation (train_eval.py, compare_transformer.py)
-data/           dataset (raw/ and original backup are gitignored — unanonymised)
-netscan/        gateway scripts: netreport.py, network_rules.json,
-                alert_report.py, alert_rules.json
-docs/           DEVLOG.md, RQ2_RESULTS.md, EVALUATION_STUDY.md, GATEWAY_SETUP.md
-study/          evaluation materials + results spreadsheet
-(CyberSaathi-mobile)  Flutter app (lib/main.dart, local_engine.dart, rules JSON)
-```
-
-## Running it
-
-- **Backend:** deployed on Render (`https://cybersaathi-gmrv.onrender.com`). Local:
-  `uvicorn app.main:app` (run without `--reload` on Python 3.14).
-- **App:** `flutter run` (Android device or Chrome). Voice needs a real Android
-  phone for Nepali speech.
-- **Gateway:** see `docs/GATEWAY_SETUP.md` to reproduce on a Kali VM.
+Each detection below maps back to a specific step on one of these paths.
 
 ---
 
-## Security & ethics
+## Detection coverage
 
-- Dataset anonymised (phone → `[PHONE]`, name → `[NAME]`, email → `[EMAIL]`,
-  long numbers → `[NUMBER]`; amounts/brands/domains kept). Raw un-anonymised data
-  stays **gitignored**.
-- No secrets in the repo. VirusTotal used for hash/URL lookups only — never
-  uploads user files. Official domains verified before any whitelist entry.
-- Network scanning is limited to **user-owned** networks. The lab is an isolated
-  VirtualBox Host-Only network; Metasploitable2 is **never** bridged.
-- Production uses HTTPS; the dev-only cleartext flag was removed from the app.
+Seven detections spanning the full attack lifecycle, across three hosts and four telemetry sources.
+Each has a Sigma source of truth, a deployed Wazuh rule, and an analyst runbook.
 
-## Honest limitations
+| # | Rule ID(s) | Detection | MITRE ATT&CK | Tactic | Host | Telemetry |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | `100001` / `100002` | Brute force (failed logons) | T1110.001 | Credential Access | DC01 | Windows Security (4625) |
+| 2 | `100010` | **Successful** brute force (failures → success) | T1110 | Credential Access | DC01 | Windows Security (4625→4624) |
+| 3 | `100003` | Office application spawning a shell | T1204.002 / T1059.001 | Execution | DC01 | Sysmon (EID 1) |
+| 4 | `100004` / `100008` | LSASS credential theft (blocked by Defender) | T1003.001 | Credential Access | DC01 | Microsoft Defender (1116/1117) |
+| 5 | `100005` / `100006` / `100007` | New account / added to privileged group | T1136 / T1098 | Persistence / Priv. Esc. | DC01 | Windows Security (4720/4728/4732/4756) |
+| 6 | `100012` | Web shell dropped in web root | T1505.003 | Persistence | WEB01 | File Integrity Monitoring |
+| 7 | `100011` | Shadow copy / backup deletion | T1490 | Impact | DC01 | Sysmon (EID 1) |
 
-- Dataset is modest and Nepal-specific; results are indicative, not definitive.
-- The evaluation study is **designed and ready to run** (materials + spreadsheet)
-  but requires participants and ethics approval — not yet run.
-- Backend keeps the latest scan/alert in memory (lost on free-tier restart).
-- Nepali text-to-speech voice availability varies by device.
-- The gateway is a lab proof-of-concept; a real deployment would run on dedicated
-  hardware (e.g. a Raspberry Pi) with a threat-intel feed.
+### Kill-chain view
+
+```
+Initial Access ──▶ Execution ──▶ Credential Access ──▶ Persistence / PrivEsc ──▶ Impact
+  (brute force)    (macro→shell)   (LSASS dump,          (backdoor admin,          (shadow copy
+   #1 #2            #3              web shell) #4 #6       privileged group) #5      deletion) #7
+```
+
+The point isn't just coverage — it's that an analyst can watch an intrusion **progress** through
+these stages, with each stage raising its own alert and pointing to its own response runbook.
+
+---
+
+## Detection engineering practices
+
+What makes this a *detection engineering* project rather than a pile of rules:
+
+- **Detection-as-Code.** Every rule is authored in [Sigma](https://sigmahq.io) (vendor-neutral
+  source of truth) and deployed as a Wazuh rule. Both live in Git and are reviewed as code.
+- **Continuous Integration.** A [GitHub Actions pipeline](.github/workflows/detections-ci.yml) runs
+  on every push: it validates the Sigma rules (real `sigma-cli`) and runs a custom
+  [test harness](tests/validate_detections.py) that checks rule-ID uniqueness and range, required
+  metadata, rule-dependency resolution, and that every runbook maps to a real rule. The badge at the
+  top of this README reflects that pipeline live.
+- **Tested against real attacks.** Each detection was verified by executing the actual technique in
+  the lab (e.g. `vssadmin delete shadows`, a `LogonUser` brute force, a comsvcs LSASS dump,
+  dropping a PHP web shell) and confirming the alert fired — then tuned to remove false positives.
+- **Analyst-ready runbooks.** Every detection ships with a [runbook](runbooks/): what fired and why
+  it matters, triage questions, how to tell a false positive, containment steps, and escalation
+  criteria — plus the real tuning history and lessons from building it.
+- **Defense in depth & honest telemetry.** Where one data source failed (Sysmon's LSASS
+  ProcessAccess hook didn't fire on a hardened host), the detection was rebuilt on the telemetry that
+  *was* reliably available (Defender's block event) — because you detect with the telemetry you
+  have, not the telemetry you wish you had.
+
+---
+
+## Repository structure
+
+```
+soc-detection-lab/
+├── .github/workflows/
+│   └── detections-ci.yml          # CI: validates every detection on each push
+├── detections/
+│   ├── sigma/                     # Sigma rule sources (vendor-neutral source of truth)
+│   └── wazuh/
+│       └── local_rules.xml        # Deployed Wazuh detection rules (IDs 100001–100012)
+├── runbooks/                      # One triage runbook per detection
+├── tests/
+│   └── validate_detections.py     # Detection-as-Code validation harness
+├── threat-model.md                # Himal Traders threat model (drives what we detect)
+└── README.md
+```
+
+---
+
+## Tech stack
+
+**SIEM / detection:** Wazuh 4.14 (manager, indexer, dashboard) · Sigma · Sysmon · Suricata
+**Endpoints:** Windows Server 2022 / Active Directory · Ubuntu 24.04 · Microsoft Defender · DVWA
+**Engineering:** Git / GitHub · GitHub Actions (CI) · Python (test harness) · PowerShell
+**Framework:** MITRE ATT&CK
+
+---
+
+## Roadmap
+
+- [x] Lab build, threat model, and 7 detections across 3 hosts / 4 telemetry sources
+- [x] Analyst runbooks for every detection
+- [x] Detection-as-Code: Sigma sources + CI validation pipeline
+- [ ] Automated response (SOAR) — active response on high-severity alerts
+- [ ] Intrusion **prevention** (Suricata IPS mode / inline blocking)
+- [ ] Threat hunting notebooks (Chainsaw / Hayabusa over collected telemetry)
+- [ ] Detection coverage metrics & an ATT&CK Navigator heatmap
+
+---
+
+## About
+
+Built by **Prashanna Ghimire** as a hands-on study of defensive security and detection engineering.
+Every component was built, broken, debugged, and tested by hand — the
+[runbooks](runbooks/) capture the real engineering decisions and the problems solved along the way.
