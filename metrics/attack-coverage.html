@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATT&CK Coverage</title>
+<style>
+  :root {
+    color-scheme: light;
+    --plane: #f9f9f7;
+    --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --hairline: #e1e0d9;
+    --ring: rgba(11,11,11,0.10);
+    /* tactic hues (validated categorical slots 1-6) */
+    --t-ia: #2a78d6;   /* Initial Access  - blue   */
+    --t-ex: #eb6834;   /* Execution       - orange */
+    --t-pe: #1baf7a;   /* Persistence     - aqua   */
+    --t-pr: #eda100;   /* Priv. Esc.      - yellow */
+    --t-ca: #e87ba4;   /* Credential Acc. - magenta*/
+    --t-im: #008300;   /* Impact          - green  */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --plane: #0d0d0d;
+      --surface-1: #1a1a19;
+      --text-primary: #f0efec;
+      --text-secondary: #c3c2b7;
+      --muted: #898781;
+      --hairline: #2c2c2a;
+      --ring: rgba(255,255,255,0.10);
+      --t-ia: #3987e5; --t-ex: #d95926; --t-pe: #199e70;
+      --t-pr: #c98500; --t-ca: #d55181; --t-im: #008300;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane: #0d0d0d; --surface-1: #1a1a19;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --muted: #898781;
+    --hairline: #2c2c2a; --ring: rgba(255,255,255,0.10);
+    --t-ia: #3987e5; --t-ex: #d95926; --t-pe: #199e70;
+    --t-pr: #c98500; --t-ca: #d55181; --t-im: #008300;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--plane); color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45; padding: 32px 16px 48px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 26px; }
+  .stat {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 12px;
+    padding: 12px 16px; min-width: 104px;
+  }
+  .stat b { display: block; font-size: 1.5rem; line-height: 1.1; }
+  .stat span { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .board {
+    display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 12px;
+  }
+  @media (max-width: 920px) { .board { grid-template-columns: repeat(3,1fr); } }
+  @media (max-width: 560px) { .board { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 380px) { .board { grid-template-columns: 1fr; } }
+
+  .col-head {
+    font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #fff; padding: 8px 10px; border-radius: 8px 8px 0 0; line-height: 1.25;
+  }
+  .col-head small { display:block; font-weight:600; opacity:0.85; font-size:0.66rem; letter-spacing:0.03em; }
+  .col { display: flex; flex-direction: column; gap: 8px; }
+
+  .card {
+    background: color-mix(in srgb, var(--hue) 10%, var(--surface-1));
+    border: 1px solid var(--ring); border-left: 3px solid var(--hue);
+    border-radius: 8px; padding: 9px 11px; transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .card:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  .tid { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.72rem; font-weight: 700; color: var(--text-primary); }
+  .tname { font-size: 0.82rem; margin: 1px 0 5px; color: var(--text-primary); }
+  .src { font-size: 0.72rem; color: var(--text-secondary); }
+  .tag {
+    display:inline-block; font-size:0.62rem; font-weight:700; letter-spacing:0.03em;
+    text-transform:uppercase; padding:1px 6px; border-radius:999px; margin-bottom:5px;
+    border:1px solid var(--ring); color: var(--text-secondary);
+  }
+  .tag.block { color:#fff; background: var(--t-im); border-color: transparent; }
+
+  footer { margin-top: 28px; font-size: 0.78rem; color: var(--muted); }
+  footer a { color: var(--t-ia); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MITRE ATT&amp;CK — Detection Coverage</h1>
+    <p>Himal Traders SOC Detection Lab · 7 Wazuh detections across 3 hosts &amp; 4 telemetry sources, plus Suricata IPS</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b>6</b><span>Tactics</span></div>
+    <div class="stat"><b>10</b><span>Techniques</span></div>
+    <div class="stat"><b>8</b><span>Detections / controls</span></div>
+    <div class="stat"><b>4</b><span>Telemetry sources</span></div>
+  </div>
+
+  <div class="board">
+    <!-- Initial Access -->
+    <div class="col">
+      <div class="col-head" style="background:var(--t-ia)">Initial Access<small>TA0001</small></div>
+      <div class="card" style="--hue:var(--t-ia)">
+        <span class="tag block">Prevented · IPS</span>
+        <div class="tid">T1190</div>
+        <div class="tname">Exploit Public-Facing Application</div>
+        <div class="src">Suricata IPS — SQLi dropped inline (nfqueue)</div>
+      </div>
+    </div>
+
+    <!-- Execution -->
+    <div class="col">
+      <div class="col-head" style="background:var(--t-ex)">Execution<small>TA0002</small></div>
+      <div class="card" style="--hue:var(--t-ex)">
+        <div class="tid">T1204.002</div>
+        <div class="tname">User Execution: Malicious File</div>
+        <div class="src">Wazuh 100003 · Sysmon EID 1</div>
+      </div>
+      <div class="card" style="--hue:var(--t-ex)">
+        <div class="tid">T1059.001</div>
+        <div class="tname">Command &amp; Scripting: PowerShell</div>
+        <div class="src">Wazuh 100003 · Sysmon EID 1</div>
+      </div>
+    </div>
+
+    <!-- Persistence -->
+    <div class="col">
+      <div class="col-head" style="background:var(--t-pe)">Persistence<small>TA0003</small></div>
+      <div class="card" style="--hue:var(--t-pe)">
+        <div class="tid">T1136</div>
+        <div class="tname">Create Account</div>
+        <div class="src">Wazuh 100005 · Security 4720</div>
+      </div>
+      <div class="card" style="--hue:var(--t-pe)">
+        <div class="tid">T1098</div>
+        <div class="tname">Account Manipulation</div>
+        <div class="src">Wazuh 100006 · Security 4728/4732/4756</div>
+      </div>
+      <div class="card" style="--hue:var(--t-pe)">
+        <div class="tid">T1505.003</div>
+        <div class="tname">Server Software Component: Web Shell</div>
+        <div class="src">Wazuh 100012 · FIM (WEB01)</div>
+      </div>
+    </div>
+
+    <!-- Privilege Escalation -->
+    <div class="col">
+      <div class="col-head" style="background:var(--t-pr); color:#1a1a19">Privilege Escalation<small>TA0004</small></div>
+      <div class="card" style="--hue:var(--t-pr)">
+        <div class="tid">T1098</div>
+        <div class="tname">Account Manipulation — privileged group</div>
+        <div class="src">Wazuh 100007 · Security 4728/4732</div>
+      </div>
+    </div>
+
+    <!-- Credential Access -->
+    <div class="col">
+      <div class="col-head" style="background:var(--t-ca)">Credential Access<small>TA0006</small></div>
+      <div class="card" style="--hue:var(--t-ca)">
+        <div class="tid">T1110.001</div>
+        <div class="tname">Brute Force: Password Guessing</div>
+        <div class="src">Wazuh 100001/100002 · Security 4625</div>
+      </div>
+      <div class="card" style="--hue:var(--t-ca)">
+        <div class="tid">T1110</div>
+        <div class="tname">Brute Force — succeeded</div>
+        <div class="src">Wazuh 100010 · Security 4625→4624</div>
+      </div>
+      <div class="card" style="--hue:var(--t-ca)">
+        <div class="tid">T1003.001</div>
+        <div class="tname">OS Credential Dumping: LSASS Memory</div>
+        <div class="src">Wazuh 100004/100008 · Defender 1116/1117</div>
+      </div>
+    </div>
+
+    <!-- Impact -->
+    <div class="col">
+      <div class="col-head" style="background:var(--t-im)">Impact<small>TA0040</small></div>
+      <div class="card" style="--hue:var(--t-im)">
+        <div class="tid">T1490</div>
+        <div class="tname">Inhibit System Recovery</div>
+        <div class="src">Wazuh 100011 · Sysmon EID 1</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Techniques follow the <a href="https://attack.mitre.org/">MITRE ATT&amp;CK</a> Enterprise matrix.
+    A machine-readable layer (<code>attack-navigator-layer.json</code>) can be loaded into the
+    <a href="https://mitre-attack.github.io/attack-navigator/">ATT&amp;CK Navigator</a>.
+    Coverage reflects detections validated against live attack simulations in the lab.
+  </footer>
+</div>
+</body>
+</html>

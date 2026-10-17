@@ -1,0 +1,26 @@
+{
+  "name": "Himal Traders SOC Lab - Detection Coverage",
+  "versions": { "attack": "15", "navigator": "4.9.5", "layer": "4.5" },
+  "domain": "enterprise-attack",
+  "description": "Detection & prevention coverage for the Himal Traders SOC Detection Lab: 7 Wazuh detections across 3 hosts and 4 telemetry sources, plus a Suricata IPS. Each highlighted technique's comment names the rule(s) that cover it. Load at https://mitre-attack.github.io/attack-navigator/ (Open Existing Layer -> Upload).",
+  "techniques": [
+    { "techniqueID": "T1190", "score": 100, "enabled": true, "comment": "PREVENTED - Suricata IPS drops SQLi inline (rules 1000010/1000011)" },
+    { "techniqueID": "T1204.002", "score": 100, "enabled": true, "comment": "Wazuh 100003 - Office app spawns a shell (Sysmon EID 1)" },
+    { "techniqueID": "T1059.001", "score": 100, "enabled": true, "comment": "Wazuh 100003 - PowerShell child of Office (Sysmon EID 1)" },
+    { "techniqueID": "T1136", "score": 100, "enabled": true, "comment": "Wazuh 100005 - new account created (4720)" },
+    { "techniqueID": "T1098", "score": 100, "enabled": true, "comment": "Wazuh 100006/100007 - added to (privileged) group (4728/4732/4756)" },
+    { "techniqueID": "T1505.003", "score": 100, "enabled": true, "comment": "Wazuh 100012 - web shell dropped in web root (FIM)" },
+    { "techniqueID": "T1110", "score": 100, "enabled": true, "comment": "Wazuh 100010 - successful brute force (4625 then 4624)" },
+    { "techniqueID": "T1110.001", "score": 100, "enabled": true, "comment": "Wazuh 100001/100002 - password guessing (4625)" },
+    { "techniqueID": "T1003.001", "score": 100, "enabled": true, "comment": "Wazuh 100004/100008 - LSASS credential theft blocked by Defender (1116/1117)" },
+    { "techniqueID": "T1490", "score": 100, "enabled": true, "comment": "Wazuh 100011 - shadow copy / backup deletion (Sysmon EID 1)" }
+  ],
+  "gradient": { "colors": ["#ffffff", "#2a78d6"], "minValue": 0, "maxValue": 100 },
+  "legendItems": [{ "label": "Covered by a detection / prevention", "color": "#2a78d6" }],
+  "showTacticRowBackground": true,
+  "tacticRowBackground": "#dddddd",
+  "selectTechniquesAcrossTactics": true,
+  "sorting": 0,
+  "layout": { "layout": "side", "showID": true, "showName": true },
+  "hideDisabled": false
+}
