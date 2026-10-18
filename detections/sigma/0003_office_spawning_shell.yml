@@ -1,4 +1,4 @@
-title: Office Application Spawning a Shell or Script Host
+﻿title: Office Application Spawning a Shell or Script Host
 id: da86cbdc-8103-4e60-94e0-3b51b9134231
 status: experimental
 description: |
@@ -7,7 +7,7 @@ description: |
   wscript, cscript, mshta, regsvr32, rundll32). Office has no legitimate reason to do
   this; it is a hallmark of a malicious macro. In the Himal Traders threat model this
   is Path 3 step 2: a phishing attachment executing code.
-author: Prashanna Ghimire
+author: Prashan Ghimire
 date: 2026/10/15
 references:
   - internal threat model, detection priority #3

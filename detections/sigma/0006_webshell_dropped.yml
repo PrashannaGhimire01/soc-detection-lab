@@ -1,4 +1,4 @@
-title: Web Shell Dropped in Web Root
+﻿title: Web Shell Dropped in Web Root
 id: 6618d4c3-49c3-4d34-b83a-e984256ed008
 status: experimental
 description: |
@@ -8,7 +8,7 @@ description: |
   planted after exploiting the web application. In the Himal Traders threat model this is Path 2:
   compromise of the public web server (WEB01 / DVWA). Detected via File Integrity Monitoring (FIM)
   watching /var/www/html in realtime.
-author: Prashanna Ghimire
+author: Prashan Ghimire
 date: 2026/10/16
 references:
   - internal threat model, detection priority #6

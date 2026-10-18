@@ -1,4 +1,4 @@
-title: Shadow Copy / Backup Deletion - Inhibit System Recovery
+﻿title: Shadow Copy / Backup Deletion - Inhibit System Recovery
 id: 1bb2dd17-e2ee-42ea-8450-72f69052a10d
 status: experimental
 description: |
@@ -9,7 +9,7 @@ description: |
   final step of Path 1: the attacker is about to detonate ransomware on DC01. Matching is on the
   behavioral phrase in the command line (e.g. "delete shadows") rather than the exact binary/arg
   spacing, so it is robust to quoting and full-path invocation.
-author: Prashanna Ghimire
+author: Prashan Ghimire
 date: 2026/10/16
 references:
   - internal threat model, detection priority #7

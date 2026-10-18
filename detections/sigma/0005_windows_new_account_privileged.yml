@@ -1,4 +1,4 @@
-title: New Account Created or Added to Privileged Group
+﻿title: New Account Created or Added to Privileged Group
 id: 8659e890-6314-4b69-8baf-b25958601cf3
 status: experimental
 description: |
@@ -6,7 +6,7 @@ description: |
   security group (4728/4732/4756), with high severity when the group is privileged
   (Domain Admins, Administrators, Enterprise Admins). In the Himal Traders environment
   this is Path 1 step 4: an attacker planting a backdoor admin account for persistence.
-author: Prashanna Ghimire
+author: Prashan Ghimire
 date: 2026/10/15
 references:
   - internal threat model, detection priority #5
